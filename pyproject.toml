@@ -6,7 +6,24 @@ build-backend = "hatchling.build"
 name = "br-dev-jobs"
 version = "0.1.0"
 description = "Aggregator and insight engine for Brazilian developer job listings"
+readme = "README.md"
 requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Thiago Henrique" },
+]
+keywords = ["fastapi", "etl", "jobs", "python", "brazil", "analytics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
 dependencies = [
     "fastapi>=0.111",
     "uvicorn[standard]",
@@ -33,6 +50,14 @@ dev = [
     "mypy",
     "types-feedparser",
 ]
+
+[project.urls]
+Repository = "https://github.com/ThQMS/-Br-dev-jobs"
+Issues = "https://github.com/ThQMS/-Br-dev-jobs/issues"
+Changelog = "https://github.com/ThQMS/-Br-dev-jobs/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [tool.ruff]
 target-version = "py311"

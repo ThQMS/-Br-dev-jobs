@@ -10,4 +10,4 @@ test:
 	docker compose run --rm api pytest --cov=app
 
 lint:
-	ruff check . && mypy app/
+	ruff format --check . && ruff check . && mypy app/

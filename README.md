@@ -1,5 +1,6 @@
 # br-dev-jobs
 
+![CI](https://github.com/ThQMS/-Br-dev-jobs/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-API-009688)
 ![spaCy](https://img.shields.io/badge/spaCy-NLP-09A3D5)
@@ -9,6 +10,8 @@
 Pipeline ETL that collects, normalizes, and analyzes developer jobs in Brazil.
 
 The project ships a FastAPI service, PostgreSQL storage, Redis caching, scheduled scrapers, spaCy-based enrichment, and a static dashboard served by the API.
+
+It is designed as a portfolio-grade backend project for job-market analytics: source adapters isolate scraping logic, the ETL layer standardizes job data, and the API exposes searchable listings plus aggregate market insights.
 
 ## Quick Start
 
@@ -23,6 +26,10 @@ Open `http://localhost:8000` for the dashboard and `http://localhost:8000/api/do
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+
+## Dashboard
+
+The static dashboard is served from `web/` by FastAPI at `http://localhost:8000`. It consumes the same public API endpoints documented below and is intended as the visual entry point for browsing job-market insights.
 
 ## Generated Insights
 
@@ -112,6 +119,15 @@ make test
 make lint
 ```
 
+## Tests & Quality
+
+```bash
+python -m ruff format --check .
+python -m ruff check .
+python -m mypy app
+python -m pytest
+```
+
 ## Stack
 
 | Layer | Technology |
@@ -126,4 +142,8 @@ make lint
 
 ## License
 
-MIT
+[MIT](LICENSE)
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).

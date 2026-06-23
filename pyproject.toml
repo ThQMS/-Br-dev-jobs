@@ -48,7 +48,6 @@ dev = [
     "pytest-cov",
     "ruff",
     "mypy",
-    "types-feedparser",
 ]
 
 [project.urls]

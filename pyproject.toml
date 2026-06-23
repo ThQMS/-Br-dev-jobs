@@ -7,7 +7,7 @@ name = "br-dev-jobs"
 version = "0.1.0"
 description = "Aggregator and insight engine for Brazilian developer job listings"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
     { name = "Thiago Henrique" },
@@ -19,7 +19,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
@@ -59,7 +58,7 @@ Changelog = "https://github.com/ThQMS/-Br-dev-jobs/blob/main/CHANGELOG.md"
 packages = ["app"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 100
 
 [tool.ruff.lint]
@@ -94,7 +93,7 @@ ignore = [
 known-first-party = ["app"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
 ignore_missing_imports = true

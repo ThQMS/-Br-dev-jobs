@@ -67,7 +67,6 @@ def _k_to_int(s: str) -> int:
 
 def _brl_to_int(s: str) -> int:
     """'5.000' or '5,000' or '5000' → 5000.  Drops cents."""
-    s = s.split(",")[0].split(".")[0] if re.search(r"\d{3}$", s) else s
     # Remove thousands separators: "5.000" → "5000", "5,000" → "5000"
     s = re.sub(r"[.,](?=\d{3}(?:\D|$))", "", s)
     s = re.sub(r"[.,]\d+$", "", s)  # drop decimal part

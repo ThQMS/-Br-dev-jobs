@@ -5,6 +5,7 @@ from functools import lru_cache
 
 import spacy
 import structlog
+from spacy.language import Language
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.db import Job
@@ -126,7 +127,7 @@ _TECH_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 
 
 @lru_cache(maxsize=1)
-def _load_nlp() -> spacy.Language:
+def _load_nlp() -> Language:
     try:
         return spacy.load(_SPACY_MODEL)
     except OSError:

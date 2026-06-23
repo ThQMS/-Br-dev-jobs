@@ -68,7 +68,7 @@ class JobResponse(BaseModel):
     last_seen_at: datetime
     created_at: datetime
 
-    @computed_field  # type: ignore[misc]
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def salary_range(self) -> str:
         """Human-readable salary band.  '' when no salary data is available."""
@@ -96,7 +96,7 @@ class JobListResponse(BaseModel):
     page: int
     page_size: int
 
-    @computed_field  # type: ignore[misc]
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def total_pages(self) -> int:
         if self.page_size == 0:

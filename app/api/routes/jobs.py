@@ -2,9 +2,11 @@ import enum
 import hashlib
 import json
 import uuid
+from typing import Any
 
 import sqlalchemy as sa
 from fastapi import APIRouter, HTTPException, Query, status
+from sqlalchemy import ColumnElement
 from sqlalchemy.dialects.postgresql import array as pg_array
 
 from app.api.deps import RedisDep, SessionDep
@@ -21,7 +23,7 @@ class SortOrder(str, enum.Enum):
     salary_desc = "salary_desc"
 
 
-def _list_cache_key(params: dict) -> str:
+def _list_cache_key(params: dict[str, Any]) -> str:
     digest = hashlib.sha256(json.dumps(params, sort_keys=True, default=str).encode()).hexdigest()
     return f"jobs:list:{digest}"
 
@@ -105,11 +107,12 @@ async def list_jobs(
     ).scalar_one()
 
     # ── Sort ──────────────────────────────────────────────────────────────────
-    order_clause = {
+    order_by_map: dict[SortOrder, ColumnElement[Any]] = {
         SortOrder.recent: Job.created_at.desc(),
         SortOrder.salary_asc: sa.nullslast(Job.salary_min.asc()),
         SortOrder.salary_desc: sa.nullslast(Job.salary_min.desc()),
-    }[sort]
+    }
+    order_clause = order_by_map[sort]
 
     query = query.order_by(order_clause).offset((page - 1) * page_size).limit(page_size)
     jobs = (await session.execute(query)).scalars().all()

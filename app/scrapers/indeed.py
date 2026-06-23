@@ -2,7 +2,7 @@ import asyncio
 import random
 
 import structlog
-from playwright.async_api import Page, async_playwright
+from playwright.async_api import ElementHandle, Page, async_playwright
 
 from app.core.config import settings
 from app.scrapers.base import BaseScraper, RawJob
@@ -42,7 +42,7 @@ async def _scroll_to_load(page: Page, max_jobs: int, max_scrolls: int) -> None:
 
 
 async def _extract_card(
-    card: Page,
+    card: ElementHandle,
 ) -> tuple[str, str, str | None, str | None, str] | None:
     """Return (title, company, city, salary_raw, url) or None if card is incomplete."""
     title_el = await card.query_selector("[data-testid='jobTitle'] a, .jobTitle a")

@@ -1,14 +1,15 @@
 import asyncio
 import time
+from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 import redis.asyncio as aioredis
 import sqlalchemy as sa
 import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from sqlalchemy import text
+from sqlalchemy import CursorResult, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +20,7 @@ from app.etl.deduplicator import is_duplicate
 from app.etl.enricher import JobEnricher
 from app.etl.normalizer import normalize
 from app.models.db import DailySnapshot, Job, Seniority, async_session_factory
-from app.scrapers.base import RawJob
+from app.scrapers.base import BaseScraper, RawJob
 from app.scrapers.gupy import GupyScraper
 from app.scrapers.indeed import IndeedScraper
 from app.scrapers.linkedin import LinkedInScraper
@@ -27,7 +28,12 @@ from app.scrapers.remoteok import RemoteOKScraper
 
 logger = structlog.get_logger(__name__)
 
-_SCRAPERS = [GupyScraper, LinkedInScraper, IndeedScraper, RemoteOKScraper]
+_SCRAPERS: list[Callable[[], BaseScraper]] = [
+    GupyScraper,
+    LinkedInScraper,
+    IndeedScraper,
+    RemoteOKScraper,
+]
 _STALE_DAYS = 7
 _enricher = JobEnricher()
 
@@ -52,7 +58,7 @@ async def _run_scrapers() -> list[RawJob]:
     """Run all scrapers concurrently up to MAX_CONCURRENT_SCRAPERS at a time."""
     sem = asyncio.Semaphore(settings.max_concurrent_scrapers)
 
-    async def _one(cls: Any) -> list[RawJob]:
+    async def _one(cls: Callable[[], BaseScraper]) -> list[RawJob]:
         async with sem, cls() as scraper:
             return await scraper.run()  # never raises — returns [] on error
 
@@ -147,7 +153,7 @@ async def _expire_stale_jobs(session: AsyncSession) -> int:
         .values(is_active=False)
     )
     await session.commit()
-    return result.rowcount  # type: ignore[return-value]
+    return cast("CursorResult[Any]", result).rowcount
 
 
 async def _generate_snapshot(
@@ -234,7 +240,7 @@ async def _invalidate_cache() -> int:
     """Delete all Redis keys matching 'insights:*'. Returns number of keys removed."""
     client: aioredis.Redis = aioredis.from_url(settings.redis_url, decode_responses=True)
     try:
-        keys: list[str] = await client.keys("insights:*")
+        keys = await client.keys("insights:*")
         if not keys:
             return 0
         return await client.delete(*keys)

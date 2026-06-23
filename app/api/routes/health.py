@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 import sqlalchemy as sa
 from fastapi import APIRouter
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import RedisDep, SessionDep
 from app.models.db import Job, JobSource
@@ -15,7 +16,7 @@ _SOURCES = [s.value for s in JobSource]
 _STALE_THRESHOLD_HOURS = 14
 
 
-async def _check_db(session: sa.ext.asyncio.AsyncSession) -> CheckResult:
+async def _check_db(session: AsyncSession) -> CheckResult:
     try:
         await session.execute(text("SELECT 1"))
         return CheckResult(ok=True)
@@ -32,7 +33,7 @@ async def _check_redis(redis: object) -> CheckResult:
 
 
 async def _scraper_statuses(
-    session: sa.ext.asyncio.AsyncSession,
+    session: AsyncSession,
 ) -> list[ScraperStatus]:
     """Infer per-source health from the most recently created Job row per source."""
     now = datetime.now(tz=UTC)

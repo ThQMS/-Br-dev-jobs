@@ -4,6 +4,7 @@ from datetime import UTC, date, datetime, timedelta
 import sqlalchemy as sa
 from fastapi import APIRouter
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import RedisDep, SessionDep
 from app.models.db import DailySnapshot, Job
@@ -28,7 +29,7 @@ _CACHE_1H = 3600
 
 
 async def _top_technologies(
-    session: sa.ext.asyncio.AsyncSession,
+    session: AsyncSession,
     limit: int = 20,
     *,
     since: datetime | None = None,
@@ -52,7 +53,7 @@ async def _top_technologies(
     return [(r.tech, r.cnt) for r in rows]
 
 
-async def _salary_by_seniority(session: sa.ext.asyncio.AsyncSession) -> list[InsightsSalary]:
+async def _salary_by_seniority(session: AsyncSession) -> list[InsightsSalary]:
     rows = (
         await session.execute(
             text("""

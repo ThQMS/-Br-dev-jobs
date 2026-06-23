@@ -3,7 +3,7 @@ import subprocess
 import sys
 import time
 import uuid
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from app.api.routes import health, insights, jobs
 from app.core.config import settings
@@ -36,7 +36,7 @@ _INDEX_HTML = _WEB_DIR / "index.html"
 class RequestIDMiddleware(BaseHTTPMiddleware):
     """Attaches a short request ID to every request, logs method/path/status/duration."""
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         request_id = str(uuid.uuid4())[:8]
 
         # Bind per-request context so all log lines in this coroutine carry request_id

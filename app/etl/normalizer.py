@@ -1,15 +1,10 @@
 import re
-from typing import TypeVar
 
 from app.core.exceptions import NormalizationError
 from app.etl.deduplicator import compute_hash
 from app.models.db import ContractType, JobSource, Seniority
 from app.models.schemas import JobCreate
 from app.scrapers.base import RawJob
-
-# ── Types ─────────────────────────────────────────────────────────────────────
-
-_T = TypeVar("_T")
 
 # ── Contract type ─────────────────────────────────────────────────────────────
 
@@ -57,7 +52,7 @@ _CITY_PARTICLES = frozenset({"de", "do", "da", "dos", "das", "e", "na", "no", "e
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
-def _detect(text: str, mapping: dict[str, _T]) -> _T | None:
+def _detect[T](text: str, mapping: dict[str, T]) -> T | None:
     lower = text.lower()
     for pattern, value in mapping.items():
         if re.search(pattern, lower):

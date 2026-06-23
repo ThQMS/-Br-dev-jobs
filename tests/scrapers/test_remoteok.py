@@ -37,6 +37,7 @@ def _mock_scraper(entries: list[MagicMock]) -> tuple[RemoteOKScraper, MagicMock]
 
 # ── _has_tech_tag unit tests ──────────────────────────────────────────────────
 
+
 def test_has_tech_tag_python() -> None:
     assert _has_tech_tag(["python", "aws"]) is True
 
@@ -62,6 +63,7 @@ def test_has_tech_tag_empty() -> None:
 
 
 # ── fetch_jobs integration tests ──────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_empty_feed_returns_empty() -> None:

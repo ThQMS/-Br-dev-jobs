@@ -6,27 +6,29 @@ All tests are pure-Python — no database connection required.
 
 import pytest
 
+from app.core.exceptions import NormalizationError
 from app.etl.deduplicator import compute_hash
 from app.etl.normalizer import _normalize_city, _normalize_state, _parse_salary, normalize
 from app.models.db import ContractType, JobSource, Seniority
 from app.scrapers.base import RawJob
 
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _raw(**overrides: object) -> RawJob:
-    defaults: dict[str, object] = dict(
-        source="gupy",
-        external_id="123",
-        title="Desenvolvedor Python",
-        company="ACME",
-        url="https://example.com/job/1",
-    )
+    defaults: dict[str, object] = {
+        "source": "gupy",
+        "external_id": "123",
+        "title": "Desenvolvedor Python",
+        "company": "ACME",
+        "url": "https://example.com/job/1",
+    }
     defaults.update(overrides)
     return RawJob(**defaults)  # type: ignore[arg-type]
 
 
 # ── Contract type ─────────────────────────────────────────────────────────────
+
 
 def test_contract_type_clt() -> None:
     assert normalize(_raw(title="Dev Python CLT")).contract_type == ContractType.clt
@@ -65,6 +67,7 @@ def test_contract_type_unknown() -> None:
 
 
 # ── Seniority — detected from TITLE only ─────────────────────────────────────
+
 
 def test_seniority_from_title_junior() -> None:
     assert normalize(_raw(title="Dev Python Junior")).seniority == Seniority.junior
@@ -105,6 +108,7 @@ def test_seniority_unknown_when_absent() -> None:
 
 
 # ── Salary parser ─────────────────────────────────────────────────────────────
+
 
 def test_salary_parser_range() -> None:
     lo, hi = _parse_salary("R$ 8.000 - R$ 12.000")
@@ -156,6 +160,7 @@ def test_salary_no_match() -> None:
 
 # ── Location normalisation ────────────────────────────────────────────────────
 
+
 def test_normalize_city_title_case() -> None:
     assert _normalize_city("são paulo") == "São Paulo"
 
@@ -190,6 +195,7 @@ def test_location_explicit_state_takes_precedence() -> None:
 
 # ── Source validation ─────────────────────────────────────────────────────────
 
+
 def test_valid_source_maps_to_enum() -> None:
     assert normalize(_raw(source="gupy")).source == JobSource.gupy
     assert normalize(_raw(source="remoteok")).source == JobSource.remoteok
@@ -201,11 +207,12 @@ def test_unknown_source_raises() -> None:
 
 
 def test_missing_title_raises() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(NormalizationError):
         normalize(_raw(title="", url=""))
 
 
 # ── content_hash wiring ───────────────────────────────────────────────────────
+
 
 def test_content_hash_is_16_chars() -> None:
     job = normalize(_raw())

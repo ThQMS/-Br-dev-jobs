@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import sqlalchemy as sa
 from fastapi import APIRouter
@@ -35,14 +35,13 @@ async def _scraper_statuses(
     session: sa.ext.asyncio.AsyncSession,
 ) -> list[ScraperStatus]:
     """Infer per-source health from the most recently created Job row per source."""
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     stale_cutoff = now - timedelta(hours=_STALE_THRESHOLD_HOURS)
 
     # Latest job creation time per source
     last_seen_rows = (
         await session.execute(
-            sa.select(Job.source, sa.func.max(Job.created_at).label("latest"))
-            .group_by(Job.source)
+            sa.select(Job.source, sa.func.max(Job.created_at).label("latest")).group_by(Job.source)
         )
     ).fetchall()
     last_seen: dict[str, datetime] = {r.source: r.latest for r in last_seen_rows}

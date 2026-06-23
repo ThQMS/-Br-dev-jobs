@@ -10,10 +10,7 @@ from app.scrapers.base import BaseScraper, RawJob
 
 logger = structlog.get_logger(__name__)
 
-_SEARCH_URL = (
-    "https://www.linkedin.com/jobs/search/"
-    "?keywords=developer&location=Brasil&f_TP=1,2"
-)
+_SEARCH_URL = "https://www.linkedin.com/jobs/search/?keywords=developer&location=Brasil&f_TP=1,2"
 _MAX_JOBS = 200
 _MAX_SCROLLS = 5
 _CAPTCHA_SEL = ".captcha__title, #captcha-internal, .challenge-page"
@@ -58,9 +55,7 @@ async def _extract_card(card: Page) -> tuple[str, str, str | None, str] | None:
     return title, company, city, url
 
 
-async def _fetch_detail(
-    page: Page, url: str
-) -> tuple[str | None, str | None, bool]:
+async def _fetch_detail(page: Page, url: str) -> tuple[str | None, str | None, bool]:
     """Navigate to a job detail page.
 
     Returns (description, salary_raw, captcha_detected).
@@ -77,9 +72,7 @@ async def _fetch_detail(
         desc_el = await page.query_selector(".description__text")
         description = (await desc_el.inner_text()).strip() if desc_el else None
 
-        salary_el = await page.query_selector(
-            ".salary-snippet-container, .compensation__list"
-        )
+        salary_el = await page.query_selector(".salary-snippet-container, .compensation__list")
         salary = (await salary_el.inner_text()).strip() if salary_el else None
 
         return description, salary, False
@@ -104,9 +97,7 @@ class LinkedInScraper(BaseScraper):
             detail_page = await context.new_page()
 
             try:
-                await search_page.goto(
-                    _SEARCH_URL, wait_until="domcontentloaded", timeout=30_000
-                )
+                await search_page.goto(_SEARCH_URL, wait_until="domcontentloaded", timeout=30_000)
                 await search_page.wait_for_selector(".job-search-card", timeout=15_000)
 
                 if await _is_captcha(search_page):
@@ -129,9 +120,7 @@ class LinkedInScraper(BaseScraper):
                     if i > 0:
                         await asyncio.sleep(random.uniform(2, 5))
 
-                    description, salary_raw, captcha = await _fetch_detail(
-                        detail_page, url
-                    )
+                    description, salary_raw, captcha = await _fetch_detail(detail_page, url)
                     if captcha:
                         logger.warning("linkedin_captcha_on_detail", stopped_at=i)
                         break

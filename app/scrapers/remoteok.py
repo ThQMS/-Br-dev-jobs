@@ -1,5 +1,5 @@
-import structlog
 import feedparser
+import structlog
 
 from app.core.config import settings
 from app.scrapers.base import BaseScraper, RawJob

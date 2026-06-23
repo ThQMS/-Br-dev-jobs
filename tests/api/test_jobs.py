@@ -37,6 +37,7 @@ def _mock_single(session_mock: object, job: object | None) -> None:
 
 # ── List endpoint ─────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_list_jobs_returns_paginated(async_client: AsyncClient) -> None:
     jobs = [make_job(title=f"Dev {i}") for i in range(3)]
@@ -140,6 +141,7 @@ async def test_salary_range_in_response(async_client: AsyncClient) -> None:
 
 
 # ── Detail endpoint ───────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_get_job_by_id(async_client: AsyncClient) -> None:

@@ -16,8 +16,11 @@ def enricher() -> JobEnricher:
 
 # ── Single technology ─────────────────────────────────────────────────────────
 
+
 def test_extract_python_from_description(enricher: JobEnricher) -> None:
-    techs = enricher.extract_technologies("Buscamos desenvolvedor Python com experiência em Django.")
+    techs = enricher.extract_technologies(
+        "Buscamos desenvolvedor Python com experiência em Django."
+    )
     assert "Python" in techs
     assert "Django" in techs
 
@@ -50,13 +53,24 @@ def test_extract_postgresql(enricher: JobEnricher) -> None:
 
 # ── Multiple technologies ─────────────────────────────────────────────────────
 
+
 def test_extract_multiple_technologies(enricher: JobEnricher) -> None:
     description = (
         "Desenvolvedor Full Stack com Python (FastAPI/Django), "
         "React, TypeScript, PostgreSQL, Redis, Docker e AWS."
     )
     techs = enricher.extract_technologies(description)
-    expected = {"Python", "FastAPI", "Django", "React", "TypeScript", "PostgreSQL", "Redis", "Docker", "AWS"}
+    expected = {
+        "Python",
+        "FastAPI",
+        "Django",
+        "React",
+        "TypeScript",
+        "PostgreSQL",
+        "Redis",
+        "Docker",
+        "AWS",
+    }
     assert expected.issubset(set(techs))
 
 
@@ -81,6 +95,7 @@ def test_extract_sorted_by_frequency(enricher: JobEnricher) -> None:
 
 # ── Empty / no match ─────────────────────────────────────────────────────────
 
+
 def test_no_technologies_returns_empty(enricher: JobEnricher) -> None:
     assert enricher.extract_technologies("Boa comunicação e trabalho em equipe.") == []
 
@@ -95,6 +110,7 @@ def test_none_like_empty(enricher: JobEnricher) -> None:
 
 
 # ── Case-insensitivity ────────────────────────────────────────────────────────
+
 
 def test_extract_case_insensitive(enricher: JobEnricher) -> None:
     techs_lower = enricher.extract_technologies("python e docker")

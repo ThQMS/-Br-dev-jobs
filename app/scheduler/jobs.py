@@ -1,6 +1,6 @@
 import asyncio
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import redis.asyncio as aioredis
@@ -34,17 +34,19 @@ _enricher = JobEnricher()
 
 # ── Per-job helpers ───────────────────────────────────────────────────────────
 
+
 async def _touch_last_seen(session: AsyncSession, content_hash: str) -> None:
     """Bump last_seen_at on an existing job so it doesn't get expired."""
     await session.execute(
         sa.update(Job)
         .where(Job.content_hash == content_hash)
-        .values(last_seen_at=datetime.now(tz=timezone.utc))
+        .values(last_seen_at=datetime.now(tz=UTC))
     )
     await session.commit()
 
 
 # ── Scraping phase ────────────────────────────────────────────────────────────
+
 
 async def _run_scrapers() -> list[RawJob]:
     """Run all scrapers concurrently up to MAX_CONCURRENT_SCRAPERS at a time."""
@@ -59,6 +61,7 @@ async def _run_scrapers() -> list[RawJob]:
 
 
 # ── ETL phase ─────────────────────────────────────────────────────────────────
+
 
 async def _process_raw(
     session: AsyncSession,
@@ -134,9 +137,10 @@ async def _process_raw(
 
 # ── Post-processing ───────────────────────────────────────────────────────────
 
+
 async def _expire_stale_jobs(session: AsyncSession) -> int:
     """Set is_active=False on jobs not seen for > _STALE_DAYS days. Returns row count."""
-    cutoff = datetime.now(tz=timezone.utc) - timedelta(days=_STALE_DAYS)
+    cutoff = datetime.now(tz=UTC) - timedelta(days=_STALE_DAYS)
     result = await session.execute(
         sa.update(Job)
         .where(Job.is_active.is_(True), Job.last_seen_at < cutoff)
@@ -153,13 +157,11 @@ async def _generate_snapshot(
 ) -> None:
     """Upsert today's DailySnapshot with aggregated metrics."""
     today = date.today()
-    today_start = datetime.combine(today, datetime.min.time()).replace(tzinfo=timezone.utc)
+    today_start = datetime.combine(today, datetime.min.time()).replace(tzinfo=UTC)
 
     # Total active jobs
     total_active: int = (
-        await session.execute(
-            sa.select(sa.func.count(Job.id)).where(Job.is_active.is_(True))
-        )
+        await session.execute(sa.select(sa.func.count(Job.id)).where(Job.is_active.is_(True)))
     ).scalar_one()
 
     # New jobs added today (across all runs)
@@ -209,17 +211,17 @@ async def _generate_snapshot(
     ).fetchall()
     salary_map: dict[str, int] = {r.seniority: int(r.avg) for r in salary_rows}
 
-    snapshot_values: dict[str, Any] = dict(
-        date=today,
-        total_jobs=total_active,
-        new_jobs=new_today,
-        expired_jobs=expired_jobs,
-        top_technologies=top_technologies,
-        top_cities=top_cities,
-        avg_salary_junior=salary_map.get(Seniority.junior),
-        avg_salary_mid=salary_map.get(Seniority.mid),
-        avg_salary_senior=salary_map.get(Seniority.senior),
-    )
+    snapshot_values: dict[str, Any] = {
+        "date": today,
+        "total_jobs": total_active,
+        "new_jobs": new_today,
+        "expired_jobs": expired_jobs,
+        "top_technologies": top_technologies,
+        "top_cities": top_cities,
+        "avg_salary_junior": salary_map.get(Seniority.junior),
+        "avg_salary_mid": salary_map.get(Seniority.mid),
+        "avg_salary_senior": salary_map.get(Seniority.senior),
+    }
     await session.execute(
         pg_insert(DailySnapshot)
         .values(**snapshot_values)
@@ -241,6 +243,7 @@ async def _invalidate_cache() -> int:
 
 
 # ── Full pipeline ─────────────────────────────────────────────────────────────
+
 
 async def run_full_pipeline() -> None:
     log = logger.bind(pipeline="full")
@@ -280,15 +283,16 @@ async def run_full_pipeline() -> None:
 
 # ── Scheduler factory ─────────────────────────────────────────────────────────
 
+
 def create_scheduler() -> AsyncIOScheduler:
-    scheduler = AsyncIOScheduler(timezone=timezone.utc)
+    scheduler = AsyncIOScheduler(timezone=UTC)
     scheduler.add_job(
         run_full_pipeline,
-        trigger=IntervalTrigger(hours=settings.scrape_interval_hours, timezone=timezone.utc),
+        trigger=IntervalTrigger(hours=settings.scrape_interval_hours, timezone=UTC),
         id="pipeline_interval",
         name="Job scraping pipeline",
         replace_existing=True,
         # next_run_time=now() triggers one immediate run on scheduler.start()
-        next_run_time=datetime.now(tz=timezone.utc),
+        next_run_time=datetime.now(tz=UTC),
     )
     return scheduler

@@ -46,12 +46,8 @@ async def _extract_card(
 ) -> tuple[str, str, str | None, str | None, str] | None:
     """Return (title, company, city, salary_raw, url) or None if card is incomplete."""
     title_el = await card.query_selector("[data-testid='jobTitle'] a, .jobTitle a")
-    company_el = await card.query_selector(
-        "[data-testid='company-name'], .companyName"
-    )
-    location_el = await card.query_selector(
-        "[data-testid='text-location'], .companyLocation"
-    )
+    company_el = await card.query_selector("[data-testid='company-name'], .companyName")
+    location_el = await card.query_selector("[data-testid='text-location'], .companyLocation")
     salary_el = await card.query_selector(
         ".salary-snippet, [class*='salaryText'], [data-testid='attribute_snippet_testid']"
     )
@@ -82,9 +78,7 @@ async def _fetch_description(page: Page, url: str) -> tuple[str | None, bool]:
 
         await asyncio.sleep(random.uniform(2, 5))
 
-        desc_el = await page.query_selector(
-            "#jobDescriptionText, .jobDescriptionText"
-        )
+        desc_el = await page.query_selector("#jobDescriptionText, .jobDescriptionText")
         description = (await desc_el.inner_text()).strip() if desc_el else None
         return description, False
     except Exception:
@@ -109,9 +103,7 @@ class IndeedScraper(BaseScraper):
             detail_page = await context.new_page()
 
             try:
-                await search_page.goto(
-                    _SEARCH_URL, wait_until="domcontentloaded", timeout=30_000
-                )
+                await search_page.goto(_SEARCH_URL, wait_until="domcontentloaded", timeout=30_000)
                 await search_page.wait_for_selector(_RESULTS_SEL, timeout=15_000)
 
                 if await _is_captcha(search_page):
@@ -139,9 +131,7 @@ class IndeedScraper(BaseScraper):
 
                 logger.info("indeed_cards_collected", count=len(card_data))
 
-                for i, (title, company, city, salary_raw, url, ext_id) in enumerate(
-                    card_data
-                ):
+                for i, (title, company, city, salary_raw, url, ext_id) in enumerate(card_data):
                     if i > 0:
                         await asyncio.sleep(random.uniform(2, 5))
 

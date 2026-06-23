@@ -1,12 +1,12 @@
 import json
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 import sqlalchemy as sa
 from fastapi import APIRouter
 from sqlalchemy import text
 
 from app.api.deps import RedisDep, SessionDep
-from app.models.db import DailySnapshot, Job, Seniority
+from app.models.db import DailySnapshot, Job
 from app.models.schemas import (
     InsightsCity,
     InsightsDashboard,
@@ -25,6 +25,7 @@ _CACHE_1H = 3600
 
 
 # ── Shared query helpers ──────────────────────────────────────────────────────
+
 
 async def _top_technologies(
     session: sa.ext.asyncio.AsyncSession,
@@ -82,21 +83,20 @@ async def _salary_by_seniority(session: sa.ext.asyncio.AsyncSession) -> list[Ins
 
 # ── GET /insights (dashboard) ─────────────────────────────────────────────────
 
+
 @router.get("", response_model=InsightsDashboard)
 async def get_dashboard(session: SessionDep, redis: RedisDep) -> InsightsDashboard:
     cached = await redis.get(_DASHBOARD_KEY)
     if cached:
         return InsightsDashboard(**json.loads(cached))
 
-    now_utc = datetime.now(tz=timezone.utc)
-    today_start = datetime.combine(date.today(), datetime.min.time()).replace(tzinfo=timezone.utc)
+    now_utc = datetime.now(tz=UTC)
+    today_start = datetime.combine(date.today(), datetime.min.time()).replace(tzinfo=UTC)
     week_start = now_utc - timedelta(days=7)
 
     # ── Counts ────────────────────────────────────────────────────────────────
     total_active: int = (
-        await session.execute(
-            sa.select(sa.func.count(Job.id)).where(Job.is_active.is_(True))
-        )
+        await session.execute(sa.select(sa.func.count(Job.id)).where(Job.is_active.is_(True)))
     ).scalar_one()
 
     new_today: int = (
@@ -199,8 +199,7 @@ async def get_dashboard(session: SessionDep, redis: RedisDep) -> InsightsDashboa
         )
     ).fetchall()
     daily_volume = [
-        {"date": str(r.date), "total": r.total_jobs, "new": r.new_jobs}
-        for r in snap_rows
+        {"date": str(r.date), "total": r.total_jobs, "new": r.new_jobs} for r in snap_rows
     ]
 
     response = InsightsDashboard(
@@ -219,6 +218,7 @@ async def get_dashboard(session: SessionDep, redis: RedisDep) -> InsightsDashboa
 
 # ── GET /insights/technologies ────────────────────────────────────────────────
 
+
 @router.get("/technologies", response_model=list[InsightsTechStack])
 async def get_technologies(session: SessionDep, redis: RedisDep) -> list[InsightsTechStack]:
     """Top 50 technologies with trend vs previous week."""
@@ -226,7 +226,7 @@ async def get_technologies(session: SessionDep, redis: RedisDep) -> list[Insight
     if cached:
         return [InsightsTechStack(**item) for item in json.loads(cached)]
 
-    now_utc = datetime.now(tz=timezone.utc)
+    now_utc = datetime.now(tz=UTC)
     week_ago = now_utc - timedelta(days=7)
     two_weeks_ago = now_utc - timedelta(days=14)
 
@@ -279,9 +279,7 @@ async def get_technologies(session: SessionDep, redis: RedisDep) -> list[Insight
             technology=r.tech,
             count=r.total_cnt,
             percentage=round(r.total_cnt / max(total_jobs, 1) * 100, 1),
-            trend=round(
-                (r.curr_cnt - r.prev_cnt) / max(r.prev_cnt, 1) * 100, 1
-            ),
+            trend=round((r.curr_cnt - r.prev_cnt) / max(r.prev_cnt, 1) * 100, 1),
         )
         for r in rows
     ]
@@ -290,6 +288,7 @@ async def get_technologies(session: SessionDep, redis: RedisDep) -> list[Insight
 
 
 # ── GET /insights/salaries ────────────────────────────────────────────────────
+
 
 @router.get("/salaries", response_model=SalariesResponse)
 async def get_salaries(session: SessionDep, redis: RedisDep) -> SalariesResponse:

@@ -2,7 +2,7 @@ import asyncio
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 import httpx
 import structlog
@@ -21,12 +21,12 @@ class RawJob:
     title: str
     company: str
     url: str
-    city: Optional[str] = None
-    state: Optional[str] = None
+    city: str | None = None
+    state: str | None = None
     remote: bool = False
-    contract_type_raw: Optional[str] = None
-    salary_raw: Optional[str] = None
-    description: Optional[str] = None
+    contract_type_raw: str | None = None
+    salary_raw: str | None = None
+    description: str | None = None
 
 
 class BaseScraper(ABC):
@@ -35,7 +35,9 @@ class BaseScraper(ABC):
     def __init__(self) -> None:
         self._http = httpx.AsyncClient(
             timeout=httpx.Timeout(30.0),
-            headers={"User-Agent": "br-dev-jobs/0.1 (job aggregator; contact thqueirozsilva@gmail.com)"},
+            headers={
+                "User-Agent": "br-dev-jobs/0.1 (job aggregator; contact thqueirozsilva@gmail.com)"
+            },
             follow_redirects=True,
         )
 

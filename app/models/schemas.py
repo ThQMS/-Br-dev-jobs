@@ -1,14 +1,14 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, computed_field
 
 from app.models.db import ContractType, JobSource, Seniority
 
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _fmt_k(value: int) -> str:
     """Format an integer salary as a compact BRL string. 8000 → '8k', 4500 → '4,5k'."""
@@ -20,6 +20,7 @@ def _fmt_k(value: int) -> str:
 
 # ── Internal (ETL write) ──────────────────────────────────────────────────────
 
+
 class JobCreate(BaseModel):
     """Normalised job produced by the ETL pipeline, ready to persist."""
 
@@ -27,20 +28,21 @@ class JobCreate(BaseModel):
     source: JobSource
     title: str
     company: str
-    city: Optional[str] = None
-    state: Optional[str] = None
+    city: str | None = None
+    state: str | None = None
     remote: bool = False
     contract_type: ContractType = ContractType.unknown
     seniority: Seniority = Seniority.unknown
-    salary_min: Optional[int] = None
-    salary_max: Optional[int] = None
+    salary_min: int | None = None
+    salary_max: int | None = None
     technologies: list[str] = []
-    raw_description: Optional[str] = None
+    raw_description: str | None = None
     url: str
     content_hash: str
 
 
 # ── Job read schemas ──────────────────────────────────────────────────────────
+
 
 class JobResponse(BaseModel):
     """Public representation of a job listing returned by the API."""
@@ -52,13 +54,13 @@ class JobResponse(BaseModel):
     source: JobSource
     title: str
     company: str
-    city: Optional[str] = None
-    state: Optional[str] = None
+    city: str | None = None
+    state: str | None = None
     remote: bool
     contract_type: ContractType
     seniority: Seniority
-    salary_min: Optional[int] = None
-    salary_max: Optional[int] = None
+    salary_min: int | None = None
+    salary_max: int | None = None
     technologies: list[str] = []
     url: str
     is_active: bool
@@ -85,7 +87,7 @@ JobRead = JobResponse
 class JobDetailResponse(JobResponse):
     """Full job detail including raw description, returned by GET /jobs/{id}."""
 
-    raw_description: Optional[str] = None
+    raw_description: str | None = None
 
 
 class JobListResponse(BaseModel):
@@ -103,6 +105,7 @@ class JobListResponse(BaseModel):
 
 
 # ── Insights — detail schemas ─────────────────────────────────────────────────
+
 
 class InsightsTechStack(BaseModel):
     technology: str
@@ -140,10 +143,11 @@ class InsightsDashboard(BaseModel):
 
 # ── Insights — legacy summary (used by /api/v1/insights) ─────────────────────
 
+
 class SalarySummary(BaseModel):
-    avg_junior: Optional[int] = None
-    avg_mid: Optional[int] = None
-    avg_senior: Optional[int] = None
+    avg_junior: int | None = None
+    avg_mid: int | None = None
+    avg_senior: int | None = None
 
 
 class InsightResponse(BaseModel):
@@ -157,6 +161,7 @@ class InsightResponse(BaseModel):
 
 
 # ── Salary insights ──────────────────────────────────────────────────────────
+
 
 class SalaryByTech(BaseModel):
     technology: str
@@ -173,9 +178,10 @@ class SalariesResponse(BaseModel):
 
 # ── Health ────────────────────────────────────────────────────────────────────
 
+
 class CheckResult(BaseModel):
     ok: bool
-    detail: Optional[str] = None
+    detail: str | None = None
 
 
 class HealthResponse(BaseModel):
@@ -186,6 +192,7 @@ class HealthResponse(BaseModel):
 
 # ── Scraper monitoring ────────────────────────────────────────────────────────
 
+
 class ScraperRunStatus(str, enum.Enum):
     idle = "idle"
     running = "running"
@@ -195,7 +202,7 @@ class ScraperRunStatus(str, enum.Enum):
 
 class ScraperStatus(BaseModel):
     source: str
-    last_run: Optional[datetime] = None
+    last_run: datetime | None = None
     jobs_collected: int
     status: ScraperRunStatus
-    error_message: Optional[str] = None
+    error_message: str | None = None

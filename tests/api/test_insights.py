@@ -8,11 +8,9 @@ the behaviour most critical to protect in CI.
 """
 
 import json
-from datetime import datetime, timezone
 
 import pytest
 from httpx import AsyncClient
-
 
 # ── Shared test data ──────────────────────────────────────────────────────────
 
@@ -22,15 +20,15 @@ _DASHBOARD_JSON = {
     "new_this_week": 47,
     "top_technologies": [
         {"technology": "Python", "count": 120, "percentage": 48.0, "trend": 8.5},
-        {"technology": "React",  "count": 90,  "percentage": 36.0, "trend": -2.1},
+        {"technology": "React", "count": 90, "percentage": 36.0, "trend": -2.1},
     ],
     "salary_by_seniority": [
-        {"seniority": "junior", "median": 5000,  "p25": 4000,  "p75": 6500,  "sample_size": 30},
+        {"seniority": "junior", "median": 5000, "p25": 4000, "p75": 6500, "sample_size": 30},
         {"seniority": "senior", "median": 15000, "p25": 12000, "p75": 19000, "sample_size": 25},
     ],
     "top_cities": [
         {"city": "São Paulo", "state": "SP", "count": 80, "remote_percentage": 35.0},
-        {"city": "Remoto",    "state": "",   "count": 60, "remote_percentage": 100.0},
+        {"city": "Remoto", "state": "", "count": 60, "remote_percentage": 100.0},
     ],
     "daily_volume": [
         {"date": "2026-05-30", "total": 245, "new": 8},
@@ -41,13 +39,13 @@ _DASHBOARD_JSON = {
 }
 
 _TECH_JSON = [
-    {"technology": "Python",     "count": 120, "percentage": 48.0, "trend": 8.5},
-    {"technology": "JavaScript", "count": 85,  "percentage": 34.0, "trend": 1.2},
+    {"technology": "Python", "count": 120, "percentage": 48.0, "trend": 8.5},
+    {"technology": "JavaScript", "count": 85, "percentage": 34.0, "trend": 1.2},
 ]
 
 _SALARY_JSON = {
     "by_seniority": [
-        {"seniority": "junior", "median": 5000,  "p25": 4000,  "p75": 6500,  "sample_size": 30},
+        {"seniority": "junior", "median": 5000, "p25": 4000, "p75": 6500, "sample_size": 30},
         {"seniority": "senior", "median": 15000, "p25": 12000, "p75": 19000, "sample_size": 25},
     ],
     "by_technology": [
@@ -57,6 +55,7 @@ _SALARY_JSON = {
 
 
 # ── GET /insights (dashboard) ─────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_insights_dashboard_structure(async_client: AsyncClient) -> None:
@@ -70,9 +69,14 @@ async def test_insights_dashboard_structure(async_client: AsyncClient) -> None:
 
     # Required top-level fields
     for key in (
-        "total_active_jobs", "new_today", "new_this_week",
-        "top_technologies", "salary_by_seniority", "top_cities",
-        "daily_volume", "last_updated",
+        "total_active_jobs",
+        "new_today",
+        "new_this_week",
+        "top_technologies",
+        "salary_by_seniority",
+        "top_cities",
+        "daily_volume",
+        "last_updated",
     ):
         assert key in data, f"missing key: {key}"
 
@@ -141,20 +145,20 @@ async def test_insights_cached_on_second_call(async_client: AsyncClient) -> None
 @pytest.mark.asyncio
 async def test_insights_cache_miss_calls_redis_setex(async_client: AsyncClient) -> None:
     """On cache miss the route must store the result in Redis with setex."""
-    from unittest.mock import MagicMock, AsyncMock
+    from unittest.mock import MagicMock
 
     async_client.mock_redis.get.return_value = None  # cache miss
 
     # Provide minimal valid returns for all DB queries in the insights route
-    scalar_100  = MagicMock(scalar_one=MagicMock(return_value=100))
-    scalar_12   = MagicMock(scalar_one=MagicMock(return_value=12))
-    scalar_47   = MagicMock(scalar_one=MagicMock(return_value=47))
-    empty_rows  = MagicMock(fetchall=MagicMock(return_value=[]))
+    scalar_100 = MagicMock(scalar_one=MagicMock(return_value=100))
+    scalar_12 = MagicMock(scalar_one=MagicMock(return_value=12))
+    scalar_47 = MagicMock(scalar_one=MagicMock(return_value=47))
+    empty_rows = MagicMock(fetchall=MagicMock(return_value=[]))
 
     async_client.mock_session.execute.side_effect = [
         scalar_100,  # total_active
-        scalar_12,   # new_today
-        scalar_47,   # new_this_week
+        scalar_12,  # new_today
+        scalar_47,  # new_this_week
         empty_rows,  # top_tech (all_tech text query)
         empty_rows,  # prev_week text query
         empty_rows,  # curr_week text query
@@ -170,6 +174,7 @@ async def test_insights_cache_miss_calls_redis_setex(async_client: AsyncClient) 
 
 
 # ── GET /insights/technologies ────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_technologies_endpoint_structure(async_client: AsyncClient) -> None:
@@ -200,6 +205,7 @@ async def test_technologies_cached(async_client: AsyncClient) -> None:
 
 
 # ── GET /insights/salaries ────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_salaries_endpoint_structure(async_client: AsyncClient) -> None:

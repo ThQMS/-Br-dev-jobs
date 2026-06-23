@@ -13,8 +13,8 @@ from app.etl.deduplicator import compute_hash, filter_new, is_duplicate
 from app.models.db import ContractType, JobSource, Seniority
 from app.models.schemas import JobCreate
 
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _job_create(
     *,
@@ -48,6 +48,7 @@ def _session_returning(exists_value: bool) -> AsyncMock:
 
 
 # ── compute_hash ──────────────────────────────────────────────────────────────
+
 
 def test_hash_deterministic() -> None:
     h1 = compute_hash("Dev Python", "ACME", "São Paulo")
@@ -90,6 +91,7 @@ def test_different_company_not_duplicate() -> None:
 
 # ── is_duplicate ──────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_same_job_is_duplicate() -> None:
     """is_duplicate returns True when EXISTS query returns True."""
@@ -113,6 +115,7 @@ async def test_is_duplicate_calls_execute_once() -> None:
 
 
 # ── filter_new ────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_filter_new_removes_intra_batch_duplicates() -> None:

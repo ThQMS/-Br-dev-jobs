@@ -5,10 +5,10 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
+from app.core.config import settings
 
 # Import models so autogenerate can see all tables
 from app.models.db import Base  # noqa: F401
-from app.core.config import settings
 
 config = context.config
 

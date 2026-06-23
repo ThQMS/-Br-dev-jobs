@@ -56,6 +56,7 @@ _CITY_PARTICLES = frozenset({"de", "do", "da", "dos", "das", "e", "na", "no", "e
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _detect(text: str, mapping: dict[str, _T]) -> _T | None:
     lower = text.lower()
     for pattern, value in mapping.items():
@@ -132,6 +133,7 @@ def _resolve_location(city: str | None, state: str | None) -> tuple[str | None, 
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
+
 
 def normalize(raw: RawJob) -> JobCreate:
     if not raw.title or not raw.url:

@@ -5,29 +5,27 @@ Revises:
 Create Date: 2026-06-01 00:00:00.000000
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
 revision: str = "0001"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
     # ── Enum types ────────────────────────────────────────────────────────────
-    op.execute(
-        "CREATE TYPE job_source AS ENUM ('gupy', 'linkedin', 'indeed', 'remoteok')"
-    )
+    op.execute("CREATE TYPE job_source AS ENUM ('gupy', 'linkedin', 'indeed', 'remoteok')")
     op.execute(
         "CREATE TYPE contract_type AS ENUM ('clt', 'pj', 'freelance', 'internship', 'unknown')"
     )
-    op.execute(
-        "CREATE TYPE seniority AS ENUM ('junior', 'mid', 'senior', 'lead', 'unknown')"
-    )
+    op.execute("CREATE TYPE seniority AS ENUM ('junior', 'mid', 'senior', 'lead', 'unknown')")
 
     # ── jobs ──────────────────────────────────────────────────────────────────
     op.create_table(
@@ -37,8 +35,12 @@ def upgrade() -> None:
         sa.Column(
             "source",
             postgresql.ENUM(
-                "gupy", "linkedin", "indeed", "remoteok",
-                name="job_source", create_type=False,
+                "gupy",
+                "linkedin",
+                "indeed",
+                "remoteok",
+                name="job_source",
+                create_type=False,
             ),
             nullable=False,
         ),
@@ -50,8 +52,13 @@ def upgrade() -> None:
         sa.Column(
             "contract_type",
             postgresql.ENUM(
-                "clt", "pj", "freelance", "internship", "unknown",
-                name="contract_type", create_type=False,
+                "clt",
+                "pj",
+                "freelance",
+                "internship",
+                "unknown",
+                name="contract_type",
+                create_type=False,
             ),
             nullable=False,
             server_default="unknown",
@@ -59,8 +66,13 @@ def upgrade() -> None:
         sa.Column(
             "seniority",
             postgresql.ENUM(
-                "junior", "mid", "senior", "lead", "unknown",
-                name="seniority", create_type=False,
+                "junior",
+                "mid",
+                "senior",
+                "lead",
+                "unknown",
+                name="seniority",
+                create_type=False,
             ),
             nullable=False,
             server_default="unknown",
